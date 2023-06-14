@@ -26,11 +26,11 @@ public class LRCFinder {
     private static String searchQuery(String searchQuery) throws IOException, NoSuchAlgorithmException {
 
         BufferedReader reader;
+        HttpURLConnection urlConnection;
 
-        HttpURLConnection urlConnection = (HttpURLConnection) new URL(API_URL).openConnection();
+        urlConnection = (HttpURLConnection) new URL(API_URL).openConnection();
         urlConnection.setConnectTimeout(10 * 1000);
         urlConnection.setRequestProperty("User-Agent", CLIENT_USER_AGENT);
-        urlConnection.setRequestProperty("Expect", "100-Continue");
         urlConnection.setDoOutput(true);
 
         OutputStream out = urlConnection.getOutputStream();
@@ -58,14 +58,15 @@ public class LRCFinder {
         String lyrics = getLyricsURL(decryptResultXML(builder.toString()));
         if (lyrics.isEmpty()) return lyrics;
 
-        URL lyricsURL = new URL(lyrics);
-        reader = new BufferedReader(new InputStreamReader(lyricsURL.openStream()));
+        urlConnection = (HttpURLConnection) new URL(lyrics).openConnection();
+        urlConnection.setRequestProperty("User-Agent", CLIENT_USER_AGENT);
+        reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
 
-        String inputLine;
+        String lyricsLine;
         StringBuilder sb = new StringBuilder();
 
-        while ((inputLine = reader.readLine()) != null)
-            sb.append(inputLine).append("\n");
+        while ((lyricsLine = reader.readLine()) != null)
+            sb.append(lyricsLine).append("\n");
 
         reader.close();
         return sb.toString();
